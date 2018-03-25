@@ -1,0 +1,11 @@
+[package]
+name = "dermis"
+version = "0.1.0"
+authors = ["Amelorate <ameilorate2@gmail.com>"]
+description = "A small interpreter for a pure, imperitive language designed to be edited with a specialized IDE and be serializable to a file."
+license = "GPL-3.0-or-later"
+
+[dependencies]
+serde = "1.0"
+serde_derive = "1.0"
+derive_more = "0.9.0"
