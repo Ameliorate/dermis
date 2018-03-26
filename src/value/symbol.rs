@@ -47,11 +47,14 @@ use {Interpreter, SymbolTable};
 #[derive(Debug, Clone)]
 pub struct Symbol {
     name: Arc<String>,
+    /// The namespace of the symbol. If this is None, then the symbol is in the global namespace
+    /// and was created with new instead of new_local.
+    pub namespace: Option<Box<Symbol>>,
     symbol_table: Weak<RwLock<SymbolTable>>,
 }
 
 impl Symbol {
-    /// Returns a new symbol.
+    /// Returns a new symbol in the global namespace.
     ///
     /// If `name` does not start with an apostraphe ('), one will be added.
     ///
@@ -95,11 +98,8 @@ impl Symbol {
             interpreter
                 .symbol_table
                 .read()
-                .expect(&format!(
-                    "lock poisoned while creating symbol {}",
-                    name.clone()
-                ))
-                .symbols
+                .expect(&format!("lock poisoned while creating symbol {}", &name))
+                .global_symbols
                 .clone() // !!!
         }; // This is a block so that the read lock is dropped early.
 
@@ -112,11 +112,8 @@ impl Symbol {
                 interpreter
                     .symbol_table
                     .write()
-                    .expect(&format!(
-                        "lock poisoned while creating symbol {}",
-                        name.clone()
-                    ))
-                    .symbols
+                    .expect(&format!("lock poisoned while creating symbol {}", &name))
+                    .global_symbols
                     .push(name_a.clone());
                 name_a
             })
@@ -124,6 +121,69 @@ impl Symbol {
 
         Symbol {
             name: name_a,
+            namespace: None,
+            symbol_table: Arc::downgrade(&interpreter.symbol_table),
+        }
+    }
+
+    /// Creates a symbol local to it's namespace. Two symbols that share a name but not a namespace
+    /// are not equal.
+    ///
+    /// See [`Symbol::new`](Symbol::new) for more info.
+    ///
+    /// # Example
+    /// ```
+    /// use dermis::{Interpreter, Symbol};
+    ///
+    /// let mut interpreter = Interpreter::new();
+    ///
+    /// let foo_namespace = Symbol::new("foo_namespace".to_string(), &mut interpreter);
+    /// let local_a = Symbol::new_local("a".to_string(), foo_namespace.clone(), &mut interpreter);
+    ///
+    /// let bar_namespace = Symbol::new("bar_namespace".to_string(), &mut interpreter);
+    /// let local_b = Symbol::new_local("a".to_string(), bar_namespace.clone(), &mut interpreter);
+    ///
+    /// assert_eq!(local_a.get_name(), local_b.get_name());
+    /// assert_ne!(local_a, local_b);
+    /// ```
+    pub fn new_local(mut name: String, namespace: Symbol, interpreter: &mut Interpreter) -> Symbol {
+        if !name.starts_with("'") {
+            name.insert_str(0, "'");
+        }
+
+        if name.contains(" ") {
+            panic!(
+                "Symbols can not contain spaces but symbol {} contained a space",
+                name
+            );
+        }
+
+        let mut name_a: Option<Arc<String>> = interpreter
+            .symbol_table
+            .write()
+            .expect(&format!("lock poisoned while creating symbol {}", &name))
+            .symbols
+            .entry(namespace.clone())
+            .or_insert_with(|| vec![])
+            .iter()
+            .find(|n| ***n == name)
+            .map(|n| n.clone());
+
+        if name_a.is_none() {
+            name_a = Some(Arc::new(name.clone()));
+            interpreter
+                    .symbol_table
+                    .write()
+                    .expect(&format!("lock poisoned while creating symbol {}", &name))
+                    .symbols
+                    .get_mut(&namespace)
+                    .expect("symbol table namespace lookup should have been some") // Above will always set it to an empty vec if None.
+                    .push(name_a.clone().unwrap());
+        }
+
+        Symbol {
+            name: name_a.unwrap(),
+            namespace: Some(Box::new(namespace)),
             symbol_table: Arc::downgrade(&interpreter.symbol_table),
         }
     }
@@ -148,7 +208,7 @@ impl Symbol {
 
 impl PartialEq for Symbol {
     fn eq(&self, other: &Symbol) -> bool {
-        *self.name == *other.name
+        self.name == other.name && self.namespace == other.namespace
             && self.symbol_table
                 .upgrade()
                 .map(|s| {
@@ -170,7 +230,7 @@ impl Hash for Symbol {
         self.symbol_table.upgrade().is_some().hash(state);
 
         if let Some(table) = self.symbol_table.clone().upgrade() {
-            (&*(table.read().unwrap()) as *const SymbolTable).hash(state);
+            (&*table as *const RwLock<SymbolTable>).hash(state);
         }
     }
 }
@@ -179,11 +239,13 @@ impl PartialOrd for Symbol {
     fn partial_cmp(&self, other: &Symbol) -> Option<Ordering> {
         (
             &self.name,
+            &self.namespace,
             self.symbol_table
                 .upgrade()
                 .map(|t| &*(t.read().unwrap()) as *const SymbolTable),
         ).partial_cmp(&(
             &other.name,
+            &other.namespace,
             other
                 .symbol_table
                 .upgrade()
@@ -196,11 +258,13 @@ impl Ord for Symbol {
     fn cmp(&self, other: &Symbol) -> Ordering {
         (
             &self.name,
+            &self.namespace,
             self.symbol_table
                 .upgrade()
                 .map(|t| &*(t.read().unwrap()) as *const SymbolTable),
         ).cmp(&(
             &other.name,
+            &other.namespace,
             other
                 .symbol_table
                 .upgrade()

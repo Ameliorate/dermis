@@ -28,6 +28,7 @@ pub mod value;
 mod test;
 
 use std::sync::{Arc, RwLock};
+use std::collections::HashMap;
 
 pub use value::*;
 
@@ -59,5 +60,6 @@ impl Interpreter {
 /// Internal table for symbol values.
 #[derive(Debug, Clone, Eq, PartialEq, Default)]
 struct SymbolTable {
-    symbols: Vec<Arc<String>>,
+    global_symbols: Vec<Arc<String>>,
+    symbols: HashMap<Symbol, Vec<Arc<String>>>,
 }
