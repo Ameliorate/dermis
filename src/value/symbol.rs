@@ -192,8 +192,11 @@ impl Symbol {
     /// let mut interpreter = Interpreter::new();
     ///
     /// let symbol = Symbol::new("'symbol".to_string(), &mut interpreter);
+    /// let symbol_b = Symbol::new("another_symbol".to_string(), &mut interpreter);
+    /// // In symbol_b's name, note the lack of a leading apostraphe.
     ///
     /// assert_eq!(symbol.get_name(), "'symbol");
+    /// assert_eq!(symbol_b.get_name(), "'another_symbol"); // Note how one is added.
     /// ```
     pub fn get_name(&self) -> &String {
         &*self.name
