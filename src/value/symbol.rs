@@ -94,33 +94,27 @@ impl Symbol {
             );
         }
 
-        let symbols: Vec<Arc<String>> = {
-            interpreter
-                .symbol_table
-                .read()
-                .expect(&format!("lock poisoned while creating symbol {}", &name))
-                .global_symbols
-                .clone() // !!!
-        }; // This is a block so that the read lock is dropped early.
-
-        let name_a = symbols
+        let mut name_a: Option<Arc<String>> = interpreter
+            .symbol_table
+            .read()
+            .expect(&format!("lock poisoned while creating symbol {}", &name))
+            .global_symbols
             .iter()
             .find(|n| ***n == name)
-            .map(|n| n.clone())
-            .unwrap_or_else(|| {
-                let name_a = Arc::new(name.clone());
-                interpreter
-                    .symbol_table
-                    .write()
-                    .expect(&format!("lock poisoned while creating symbol {}", &name))
-                    .global_symbols
-                    .push(name_a.clone());
-                name_a
-            })
-            .clone();
+            .map(|n| n.clone());
+
+        if name_a.is_none() {
+            name_a = Some(Arc::new(name.clone()));
+            interpreter
+                .symbol_table
+                .write()
+                .expect(&format!("lock poisoned while creating symbol {}", &name))
+                .global_symbols
+                .push(name_a.clone().unwrap());
+        }
 
         Symbol {
-            name: name_a,
+            name: name_a.unwrap(),
             namespace: None,
             symbol_table: Arc::downgrade(&interpreter.symbol_table),
         }
