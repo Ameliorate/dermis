@@ -17,12 +17,16 @@
  */
 
 use std::cmp::Ordering;
+use std::convert::From;
 use std::fmt;
 use std::fmt::{Display, Formatter};
 use std::hash::{Hash, Hasher};
 use std::sync::{Arc, RwLock, Weak};
 
+use self::format::SymbolFormat;
 use {Interpreter, SymbolTable};
+
+pub(crate) mod format;
 
 /// Like a string, however the value of a symbol can not be mutated.
 ///
@@ -260,8 +264,18 @@ impl Ord for Symbol {
     }
 }
 
+impl<'a> From<&'a Symbol> for SymbolFormat<'a> {
+    fn from(val: &'a Symbol) -> SymbolFormat<'a> {
+        if let Some(namespace) = &val.namespace {
+            SymbolFormat::Local(val.get_name(), Box::new((&**namespace).into()))
+        } else {
+            SymbolFormat::Global(val.get_name())
+        }
+    }
+}
+
 impl Display for Symbol {
     fn fmt(&self, f: &mut Formatter) -> fmt::Result {
-        write!(f, "{}", self.get_name())
+        write!(f, "{}", SymbolFormat::from(self))
     }
 }

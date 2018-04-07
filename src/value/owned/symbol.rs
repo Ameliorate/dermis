@@ -18,10 +18,12 @@
 
 //! Provides an owned version of [`dermis::value::symbol::Symbol`](::value::Symbol).
 
+use std::convert::From;
 use std::fmt;
 use std::fmt::{Display, Formatter};
 
 use value::Symbol;
+use value::symbol::format::SymbolFormat;
 
 /// Provides an owned version of [`dermis::value::symbol::Symbol`](::value::Symbol).
 ///
@@ -99,9 +101,19 @@ impl OwnedSymbol {
     }
 }
 
+impl<'a> From<&'a OwnedSymbol> for SymbolFormat<'a> {
+    fn from(val: &'a OwnedSymbol) -> SymbolFormat<'a> {
+        if let Some(namespace) = &val.namespace {
+            SymbolFormat::Local(val.get_name(), Box::new((&**namespace).into()))
+        } else {
+            SymbolFormat::Global(val.get_name())
+        }
+    }
+}
+
 impl Display for OwnedSymbol {
     fn fmt(&self, f: &mut Formatter) -> fmt::Result {
-        write!(f, "{}", self.get_name())
+        write!(f, "{}", SymbolFormat::from(self))
     }
 }
 
