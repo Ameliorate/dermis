@@ -29,17 +29,11 @@ pub(crate) enum SymbolFormat<'a> {
 
 impl<'a> Display for SymbolFormat<'a> {
     fn fmt(&self, f: &mut Formatter) -> fmt::Result {
-        self.fmt_(f)
-    }
-}
-
-impl<'a> SymbolFormat<'a> {
-    fn fmt_(&self, f: &mut Formatter) -> fmt::Result {
         use self::SymbolFormat::*;
         match self {
             Global(ref name) => write!(f, "'{}", name),
             Local(ref name, ref namespace) => {
-                namespace.fmt_(f)?;
+                namespace.fmt(f)?;
                 write!(f, "::{}", &name)
             }
             Anonymous => write!(f, "'_"),
