@@ -18,8 +18,8 @@
 
 extern crate dermis;
 
-use dermis::value::{Symbol, Value};
 use dermis::Interpreter;
+use dermis::value::{Symbol, Value};
 
 fn main() {
     let mut i = Interpreter::new(); // Symbols point into the interpreter, so we must create one beforehand.
