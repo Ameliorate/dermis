@@ -16,10 +16,20 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-//! Represents Dermis values in a way that can be serialized and does not carry a reference to the
-//! interpreter that created the values.
+use Value;
 
-pub mod array;
-pub mod object;
-pub mod symbol;
-pub mod value;
+/// Any number of [`Value`](Value)s.
+///
+/// Does not necessarialy contain values of the same type.
+///
+/// # Examples
+/// ```
+/// use dermis::value::{Value, Array};
+///
+/// let array: Array = vec![Value::String("Foo".to_string()), Value::Number(12.0.into())].into();
+///
+/// assert_eq!(array[0], Value::String("Foo".to_string()));
+/// assert_eq!(array[1], Value::Number(12.0.into()));
+/// ```
+#[derive(Ord, PartialOrd, PartialEq, Eq, Hash, Debug, Clone, From, Into, Index, IndexMut)]
+pub struct Array(pub Vec<Value>);

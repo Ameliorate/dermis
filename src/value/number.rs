@@ -16,10 +16,10 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-use std::hash::{Hash, Hasher};
 use std::cmp::Ordering;
-use std::fmt::{Display, Formatter};
 use std::fmt;
+use std::fmt::{Display, Formatter};
+use std::hash::{Hash, Hasher};
 
 /// Contains a basic [`f64`](https://doc.rust-lang.org/std/primitive.f64.html), adding needed
 /// equality and ordering traits.
