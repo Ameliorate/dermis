@@ -18,9 +18,9 @@
 
 //! Provides an owned version of [`dermis::value::Value`](::value::Value)
 
-use std::fmt::{Display, Formatter};
-use std::fmt;
 use std::convert::From;
+use std::fmt;
+use std::fmt::{Display, Formatter};
 
 use value::owned::array::OwnedArray;
 use value::owned::object::OwnedObject;
@@ -32,7 +32,7 @@ use value::{Array, Number, Object, Symbol, Value};
 /// Unlike [`Value`](::value::Value), this enum can be seralized and cloned without any reference
 /// to the interpreter. If the interpreter is dropped while this value is held, this value will
 /// continue to function as expected.
-#[derive(Ord, PartialOrd, PartialEq, Eq, Hash, Debug, Clone, From)]
+#[derive(Ord, PartialOrd, PartialEq, Eq, Hash, Debug, Clone, From, Serialize, Deserialize)]
 pub enum OwnedValue {
     Number(Number),
     String(String),

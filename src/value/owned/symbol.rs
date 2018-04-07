@@ -46,7 +46,7 @@ use value::Symbol;
 ///
 /// assert_eq!(another_symbol.get_name(), "'bar");
 /// ```
-#[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
+#[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord, Hash, Serialize, Deserialize)]
 pub struct OwnedSymbol {
     name: String,
     pub namespace: Option<Box<OwnedSymbol>>,

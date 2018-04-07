@@ -21,11 +21,11 @@
 use std::collections::BTreeMap;
 use std::convert::From;
 
-use value::owned::value::OwnedValue;
 use value::Object;
+use value::owned::value::OwnedValue;
 
 /// Owned version of [`dermis::value::Object`](::value::Object)
-#[derive(Ord, PartialOrd, PartialEq, Eq, Hash, Debug, Clone, From, Into)]
+#[derive(Ord, PartialOrd, PartialEq, Eq, Hash, Debug, Clone, From, Into, Serialize, Deserialize)]
 pub struct OwnedObject(pub BTreeMap<OwnedValue, OwnedValue>);
 
 impl From<Object> for OwnedObject {

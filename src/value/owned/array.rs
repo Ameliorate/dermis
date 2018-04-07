@@ -18,13 +18,14 @@
 
 //! Owned version of [`dermis::value::Array`](::value::Array)
 
-use value::owned::value::OwnedValue;
 use value::Array;
+use value::owned::value::OwnedValue;
 
 use std::convert::From;
 
 /// Owned version of [`dermis::value::Array`](::value::Array)
-#[derive(Ord, PartialOrd, PartialEq, Eq, Hash, Debug, Clone, From, Into, Index)]
+#[derive(Ord, PartialOrd, PartialEq, Eq, Hash, Debug, Clone, From, Into, Index, Serialize,
+         Deserialize)]
 pub struct OwnedArray(pub Vec<OwnedValue>);
 
 impl From<Array> for OwnedArray {
