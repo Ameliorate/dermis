@@ -18,8 +18,8 @@
 
 //! Provides an owned version of [`dermis::value::symbol::Symbol`](::value::Symbol).
 
-use std::fmt::{Display, Formatter};
 use std::fmt;
+use std::fmt::{Display, Formatter};
 
 use value::Symbol;
 
@@ -49,6 +49,7 @@ use value::Symbol;
 #[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
 pub struct OwnedSymbol {
     name: String,
+    pub namespace: Option<Box<OwnedSymbol>>,
 }
 
 impl OwnedSymbol {
@@ -69,11 +70,40 @@ impl OwnedSymbol {
             );
         }
 
-        OwnedSymbol { name }
+        OwnedSymbol {
+            name,
+            namespace: None,
+        }
+    }
+
+    /// Creates a new symbol in the given namespace. See [`Symbol::new_local`](Symbol::new_local) for more info.
+    ///
+    /// # Panics
+    /// `name` contained a space.
+    pub fn new_local(mut name: String, namespace: OwnedSymbol) -> OwnedSymbol {
+        if !name.starts_with("'") {
+            name.insert_str(0, "'");
+        }
+
+        if name.contains(" ") {
+            panic!(
+                "Symbols can not contain spaces but symbol {} contained a space.",
+                name
+            );
+        }
+
+        OwnedSymbol {
+            name,
+            namespace: Some(Box::new(namespace)),
+        }
     }
 
     pub fn get_name(&self) -> &String {
         &self.name
+    }
+
+    pub fn get_namespace(&self) -> Option<&OwnedSymbol> {
+        self.namespace.as_ref().map(|ns: &Box<_>| &**ns)
     }
 }
 
