@@ -16,10 +16,10 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-use std::hash::{Hash, Hasher};
 use std::cmp::Ordering;
-use std::fmt::{Display, Formatter};
 use std::fmt;
+use std::fmt::{Display, Formatter};
+use std::hash::{Hash, Hasher};
 use std::sync::{Arc, RwLock, Weak};
 
 use {Interpreter, SymbolTable};
@@ -224,6 +224,7 @@ impl Eq for Symbol {}
 impl Hash for Symbol {
     fn hash<H: Hasher>(&self, state: &mut H) {
         self.name.hash(state);
+        self.namespace.hash(state);
         self.symbol_table.upgrade().is_some().hash(state);
 
         if let Some(table) = self.symbol_table.clone().upgrade() {
