@@ -42,7 +42,7 @@ use {Interpreter, SymbolTable};
 ///
 /// let symbol = Symbol::new("a".to_string(), &mut interpreter);
 ///
-/// assert_eq!(symbol.get_name(), "'a");
+/// assert_eq!(symbol.get_name(), "a");
 /// ```
 #[derive(Debug, Clone)]
 pub struct Symbol {
@@ -55,8 +55,6 @@ pub struct Symbol {
 
 impl Symbol {
     /// Returns a new symbol in the global namespace.
-    ///
-    /// If `name` does not start with an apostraphe ('), one will be added.
     ///
     /// Repeated callings of `Symbol::new` with the same name and interpreter will return `Symbol`s
     /// equal to each other.
@@ -75,18 +73,14 @@ impl Symbol {
     /// let symbol_2 = Symbol::new("a".to_string(), &mut interpreter);
     ///
     ///
-    /// assert_eq!(symbol_1.get_name(), "'a");
+    /// assert_eq!(symbol_1.get_name(), "a");
     /// assert_eq!(symbol_1, symbol_2);
     /// ```
     ///
     /// # Panics
     /// `name` contained a space. This limitation is in place to ease the creation of an input
     /// method for an IDE.
-    pub fn new(mut name: String, interpreter: &mut Interpreter) -> Symbol {
-        if !name.starts_with("'") {
-            name.insert_str(0, "'");
-        }
-
+    pub fn new(name: String, interpreter: &mut Interpreter) -> Symbol {
         if name.contains(" ") {
             panic!(
                 "Symbols can not contain spaces but symbol {} contained a space",
@@ -140,11 +134,7 @@ impl Symbol {
     /// assert_eq!(local_a.get_name(), local_b.get_name());
     /// assert_ne!(local_a, local_b);
     /// ```
-    pub fn new_local(mut name: String, namespace: Symbol, interpreter: &mut Interpreter) -> Symbol {
-        if !name.starts_with("'") {
-            name.insert_str(0, "'");
-        }
-
+    pub fn new_local(name: String, namespace: Symbol, interpreter: &mut Interpreter) -> Symbol {
         if name.contains(" ") {
             panic!(
                 "Symbols can not contain spaces but symbol {} contained a space",
@@ -182,7 +172,7 @@ impl Symbol {
         }
     }
 
-    /// Returns the name of the symbol with the leading apostraphe.
+    /// Returns the name of the symbol.
     ///
     /// # Example
     /// ```
@@ -191,12 +181,11 @@ impl Symbol {
     ///
     /// let mut interpreter = Interpreter::new();
     ///
-    /// let symbol = Symbol::new("'symbol".to_string(), &mut interpreter);
+    /// let symbol = Symbol::new("symbol".to_string(), &mut interpreter);
     /// let symbol_b = Symbol::new("another_symbol".to_string(), &mut interpreter);
-    /// // In symbol_b's name, note the lack of a leading apostraphe.
     ///
-    /// assert_eq!(symbol.get_name(), "'symbol");
-    /// assert_eq!(symbol_b.get_name(), "'another_symbol"); // Note how one is added.
+    /// assert_eq!(symbol.get_name(), "symbol");
+    /// assert_eq!(symbol_b.get_name(), "another_symbol"); // Note how one is added.
     /// ```
     pub fn get_name(&self) -> &String {
         &*self.name

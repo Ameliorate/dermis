@@ -58,11 +58,7 @@ impl OwnedSymbol {
     /// # Panics
     /// `name` contained a space. This limitation is in place to ease the creation of an input
     /// method for an IDE.
-    pub fn new(mut name: String) -> OwnedSymbol {
-        if !name.starts_with("'") {
-            name.insert_str(0, "'");
-        }
-
+    pub fn new(name: String) -> OwnedSymbol {
         if name.contains(" ") {
             panic!(
                 "Symbols can not contain spaces but symbol {} contained a space.",
@@ -80,11 +76,7 @@ impl OwnedSymbol {
     ///
     /// # Panics
     /// `name` contained a space.
-    pub fn new_local(mut name: String, namespace: OwnedSymbol) -> OwnedSymbol {
-        if !name.starts_with("'") {
-            name.insert_str(0, "'");
-        }
-
+    pub fn new_local(name: String, namespace: OwnedSymbol) -> OwnedSymbol {
         if name.contains(" ") {
             panic!(
                 "Symbols can not contain spaces but symbol {} contained a space.",
