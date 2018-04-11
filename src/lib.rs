@@ -21,14 +21,15 @@ extern crate derive_more;
 extern crate serde;
 #[macro_use]
 extern crate serde_derive;
+extern crate im;
 
 pub mod value;
 
 #[cfg(test)]
 mod test;
 
-use std::sync::{Arc, RwLock};
 use std::collections::HashMap;
+use std::sync::{Arc, RwLock};
 
 pub use value::*;
 

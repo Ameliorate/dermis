@@ -107,11 +107,11 @@ pub enum Value {
     /// use dermis::value::{Object, Value};
     /// use std::collections::BTreeMap;
     ///
-    /// let mut obj: Object = BTreeMap::new().into();
+    /// let mut obj: Object = Object::empty();
     /// // See Value::Symbol for a good type for a key.
     /// // This example does not use Symbol because it requires initializing an interpreter.
-    /// obj.0.insert(Value::String("number".to_string()), Value::Number(12.0.into()));
-    /// obj.0.insert(Value::String("string".to_string()), Value::String("Hello!".to_string()));
+    /// obj.insert_mut(Value::String("number".to_string()), Value::Number(12.0.into()));
+    /// obj.insert_mut(Value::String("string".to_string()), Value::String("Hello!".to_string()));
     ///
     /// let obj_value = Value::Object(obj.clone());
     /// let another_obj: Value = obj.clone().into();

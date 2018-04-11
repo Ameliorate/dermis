@@ -34,7 +34,7 @@ pub mod owned;
 
 pub use self::array::Array;
 pub use self::number::Number;
-pub use self::object::Object;
+pub use self::object::{get_null, Object};
 pub use self::symbol::Symbol;
 pub use self::value::Value;
 
