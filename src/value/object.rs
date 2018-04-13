@@ -340,7 +340,7 @@ mod test {
     }
 
     #[test]
-    fn object_from_array() {
+    fn btree_from_object() {
         let mut obj = Object::empty();
 
         obj.set_mut("a".into(), 12.0.into());
