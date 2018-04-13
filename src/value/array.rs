@@ -234,4 +234,21 @@ mod test {
         assert_eq!(vec[0], Value::from("a"));
         assert_eq!(vec[1], Value::from("b"));
     }
+
+    #[test]
+    fn array_get() {
+        let mut arr = Array::empty();
+        arr.push_back_mut(Value::from(1.0));
+        arr.push_back_mut(Value::from(2.0));
+
+        assert_eq!(*arr.get(0), Value::from(1.0));
+        assert_eq!(*arr.get(1), Value::from(2.0));
+    }
+
+    #[test]
+    fn array_null_get() {
+        let arr = Array::empty();
+
+        assert_eq!(arr.get(5), get_null());
+    }
 }
