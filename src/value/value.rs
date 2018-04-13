@@ -19,10 +19,7 @@
 use std::fmt;
 use std::fmt::{Display, Formatter};
 
-use Array;
-use Number;
-use Object;
-use Symbol;
+use value::{Array, Number, Object, Symbol};
 
 /// Denotes any basic value possible in Dermis.
 ///

@@ -31,7 +31,7 @@ mod test;
 use std::collections::HashMap;
 use std::sync::{Arc, RwLock};
 
-pub use value::*;
+use value::Symbol;
 
 /// The central value for Dermis interpreter.
 ///

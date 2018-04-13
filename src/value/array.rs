@@ -16,14 +16,12 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-use Value;
-
 use im::Vector;
 use im::vector::Iter;
 use std::cmp::Ordering;
 use std::sync::Arc;
 
-use value::get_null;
+use value::{get_null, Value};
 
 /// Any number of [`Value`](Value)s.
 ///
@@ -72,7 +70,7 @@ impl Array {
     ///
     /// # Example
     /// ```
-    /// use dermis::{Value, Array, get_null};
+    /// use dermis::value::{Value, Array, get_null};
     ///
     /// let arr: Array = vec!["a".into(), 12.0.into()].into();
     ///

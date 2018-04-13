@@ -21,7 +21,7 @@ use im::hashmap::{Keys, Values};
 use std::collections::BTreeMap;
 use std::sync::Arc;
 
-use Value;
+use value::Value;
 
 /// Returns an empty object.
 ///
@@ -30,8 +30,7 @@ use Value;
 ///
 /// # Example
 /// ```
-/// use dermis::value::get_null;
-/// use dermis::Value;
+/// use dermis::value::{Value, get_null};
 /// let null = get_null();
 ///
 /// match &*null {
@@ -99,7 +98,7 @@ impl Object {
     ///
     /// # Example
     /// ```
-    /// use dermis::{Value, Object, get_null};
+    /// use dermis::value::{Value, Object, get_null};
     ///
     /// let mut obj = Object::default();
     ///

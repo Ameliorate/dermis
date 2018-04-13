@@ -125,7 +125,8 @@ impl Symbol {
     ///
     /// # Example
     /// ```
-    /// use dermis::{Interpreter, Symbol};
+    /// use dermis::Interpreter;
+    /// use dermis::value::Symbol;
     ///
     /// let mut interpreter = Interpreter::new();
     ///
