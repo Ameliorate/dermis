@@ -351,4 +351,23 @@ mod test {
         assert_eq!(*tree.get(&"a".into()).unwrap(), 12.0.into());
         assert_eq!(*tree.get(&"b".into()).unwrap(), 2.0.into());
     }
+
+    #[test]
+    fn get_null() {
+        let null = super::get_null();
+
+        match &*null {
+            Value::Object(ref a) => assert_eq!(a.len(), 0),
+            _ => unreachable!(),
+        }
+    }
+
+    #[test]
+    fn object_get_set() {
+        let mut obj = Object::default();
+        obj.set_mut("bar".into(), 12.0.into());
+        let b = obj.get(&"bar".into());
+
+        assert_eq!(&*b, &Value::from(12.0));
+    }
 }
