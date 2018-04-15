@@ -267,4 +267,25 @@ mod test {
 
         assert_eq!(arr.get(5), get_null());
     }
+
+    #[test]
+    fn array_fmt_empty() {
+        let empty = Array::empty();
+
+        assert_eq!(format!("{}", empty), "[]");
+    }
+
+    #[test]
+    fn array_fmt_1() {
+        let arr: Array = vec![Value::from(1.0)].into();
+
+        assert_eq!(format!("{}", arr), "[1]");
+    }
+
+    #[test]
+    fn array_fmt_2() {
+        let arr: Array = vec![Value::from(1.0), Value::from(2.0)].into();
+
+        assert_eq!(format!("{}", arr), "[1, 2]");
+    }
 }

@@ -387,4 +387,32 @@ mod test {
 
         assert_eq!(&*b, &Value::from(12.0));
     }
+
+    #[test]
+    /// A crate this uses had issues printing empty maps, and the mistake was really easy to make.
+    /// Thus, this test.
+    fn object_fmt_empty() {
+        let empty = Object::empty();
+
+        assert_eq!(format!("{}", empty), "{}");
+    }
+
+    #[test]
+    fn object_fmt_1() {
+        let mut obj = Object::empty();
+
+        obj.set_mut("a".into(), 1.0.into());
+
+        assert_eq!(format!("{}", obj), "{\"a\": 1}");
+    }
+
+    #[test]
+    fn object_fmt_2() {
+        let mut obj = Object::empty();
+
+        obj.set_mut("a".into(), 1.0.into());
+        obj.set_mut("b".into(), 2.0.into());
+
+        assert_eq!(format!("{}", obj), "{\"a\": 1, \"b\": 2}");
+    }
 }
