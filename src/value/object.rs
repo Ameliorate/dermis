@@ -19,6 +19,8 @@
 use im::HashMap;
 use im::hashmap::{Keys, Values};
 use std::collections::BTreeMap;
+use std::fmt;
+use std::fmt::{Display, Formatter};
 use std::sync::Arc;
 
 use value::Value;
@@ -89,6 +91,22 @@ impl From<Object> for BTreeMap<Value, Value> {
                 )
             })
             .collect()
+    }
+}
+
+impl Display for Object {
+    fn fmt(&self, f: &mut Formatter) -> fmt::Result {
+        write!(f, "{{")?;
+        let mut first = true;
+        for (k, v) in &self.0 {
+            if !first {
+                write!(f, ", ")?;
+            } else {
+                first = false;
+            }
+            write!(f, "{}: {}", k, v)?;
+        }
+        write!(f, "}}")
     }
 }
 

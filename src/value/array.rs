@@ -19,6 +19,8 @@
 use im::Vector;
 use im::vector::Iter;
 use std::cmp::Ordering;
+use std::fmt;
+use std::fmt::{Display, Formatter};
 use std::sync::Arc;
 
 use value::{get_null, Value};
@@ -53,6 +55,22 @@ impl From<Array> for Vec<Value> {
             .into_iter()
             .map(|a: Arc<_>| Arc::try_unwrap(a).unwrap_or_else(|e| (&*e).clone()))
             .collect()
+    }
+}
+
+impl Display for Array {
+    fn fmt(&self, f: &mut Formatter) -> fmt::Result {
+        write!(f, "[")?;
+        let mut first = true;
+        for v in &self.0 {
+            if !first {
+                write!(f, ", ")?;
+            } else {
+                first = false;
+            }
+            write!(f, "{}", v)?;
+        }
+        write!(f, "]")
     }
 }
 

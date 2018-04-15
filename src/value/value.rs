@@ -119,37 +119,11 @@ pub enum Value {
 impl Display for Value {
     fn fmt(&self, f: &mut Formatter) -> fmt::Result {
         match *self {
-            Value::Number(ref n) => write!(f, "{}", n),
+            Value::Number(ref n) => n.fmt(f),
             Value::String(ref s) => write!(f, "\"{}\"", s),
-            Value::Symbol(ref s) => write!(f, "{}", s),
-
-            Value::Array(Array(ref a)) => {
-                write!(f, "[")?;
-                let mut first = true;
-                for v in a {
-                    if !first {
-                        write!(f, ", ")?;
-                    } else {
-                        first = false;
-                    }
-                    write!(f, "{}", v)?;
-                }
-                write!(f, "]")
-            }
-
-            Value::Object(Object(ref m)) => {
-                write!(f, "{{")?;
-                let mut first = true;
-                for (k, v) in m {
-                    if !first {
-                        write!(f, ", ")?;
-                    } else {
-                        first = false;
-                    }
-                    write!(f, "{}: {}", k, v)?;
-                }
-                write!(f, "}}")
-            }
+            Value::Symbol(ref s) => s.fmt(f),
+            Value::Array(ref a) => a.fmt(f),
+            Value::Object(ref m) => m.fmt(f),
         }
     }
 }
