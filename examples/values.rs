@@ -19,7 +19,9 @@
 extern crate dermis;
 
 use dermis::Interpreter;
-use dermis::value::{Symbol, Value};
+use dermis::value::{Object, Symbol, Value};
+
+use std::sync::Arc;
 
 fn main() {
     let mut i = Interpreter::new(); // Symbols point into the interpreter, so we must create one beforehand.
@@ -37,14 +39,27 @@ fn main() {
 
     let array = Value::Array(vec![number.clone(), Value::Number(13.0.into())].into()); // Standard array
 
-    // TODO: Add object example.
+    let mut obj = Object::empty();
+
+    obj = obj.set(symbol_val.clone(), array.clone());
+    // Set will clone the object, thus the obj =.
+    // It uses an Arc to avoid cloning the whole list, though.
+    // Being able to have many slightly different lists is a net-gain in the interpreter
+    // preformance-regards.
+
+    obj.set_mut(
+        Symbol::new("num".to_string(), &mut i).into(),
+        number.clone(),
+    );
+    // Object::set_mut will automatically handle mutibility.
+    //
+    // Value has a bunch of From impl's that allow you to convert the value inner types easily.
+
+    let obj_num: Arc<Value> = obj.get(&Symbol::new("num".to_string(), &mut i).into());
+
     println!(
-        "number: {}, string: {}, symbol: {}, symbol_val: {}, array: {}",
-        number,
-        string,
-        symbol.clone(),
-        symbol_val,
-        array
+        "number: {}, string: {}, symbol: {}, symbol_val: {}, array: {}, obj: {}, obj.num: {}",
+        number, string, symbol, symbol_val, array, obj, obj_num
     );
 
     assert_eq!(Value::Number(12.65.into()), Value::Number(12.9.into()));
