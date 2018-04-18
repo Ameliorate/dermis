@@ -413,6 +413,6 @@ mod test {
         obj.set_mut("a".into(), 1.0.into());
         obj.set_mut("b".into(), 2.0.into());
 
-        assert_eq!(format!("{}", obj), "{\"a\": 1, \"b\": 2}");
+        assert_eq!(format!("{}", obj), "{\"b\": 2, \"a\": 1}");
     }
 }
