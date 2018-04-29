@@ -413,6 +413,11 @@ mod test {
         obj.set_mut("a".into(), 1.0.into());
         obj.set_mut("b".into(), 2.0.into());
 
-        assert_eq!(format!("{}", obj), "{\"b\": 2, \"a\": 1}");
+        let fmted = format!("{}", obj);
+        assert!(
+            fmted == "{\"b\": 2, \"a\": 1}" || fmted == "{\"a\": 1, \"b\": 2}",
+            "fmted: {}",
+            fmted
+        );
     }
 }
