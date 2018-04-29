@@ -36,7 +36,7 @@ use value::symbol::format::SymbolFormat;
 /// use dermis::value::{OwnedSymbol, Symbol};
 /// use dermis::Interpreter;
 ///
-/// let owned_symbol = OwnedSymbol::new("'foo".to_string());
+/// let owned_symbol = OwnedSymbol::new_global("'foo".to_string());
 ///
 /// assert_eq!(owned_symbol.get_name(), "'foo");
 ///
@@ -49,9 +49,22 @@ use value::symbol::format::SymbolFormat;
 /// assert_eq!(another_symbol.get_name(), "'bar");
 /// ```
 #[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord, Hash, Serialize, Deserialize)]
-pub struct OwnedSymbol {
+pub enum OwnedSymbol {
+    Local(LocalOwnedSymbol),
+    Global(GlobalOwnedSymbol),
+}
+
+/// A symbol scoped to a path.
+#[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord, Hash, Serialize, Deserialize)]
+pub struct LocalOwnedSymbol {
     name: String,
-    pub namespace: Option<Box<OwnedSymbol>>,
+    namespace: Box<OwnedSymbol>,
+}
+
+/// A symbol that is located in the global namespace.
+#[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord, Hash, Serialize, Deserialize)]
+pub struct GlobalOwnedSymbol {
+    name: String,
 }
 
 impl OwnedSymbol {
@@ -60,7 +73,7 @@ impl OwnedSymbol {
     /// # Panics
     /// `name` contained a space. This limitation is in place to ease the creation of an input
     /// method for an IDE.
-    pub fn new(name: String) -> OwnedSymbol {
+    pub fn new_global(name: String) -> OwnedSymbol {
         if name.contains(" ") {
             panic!(
                 "Symbols can not contain spaces but symbol {} contained a space.",
@@ -68,10 +81,7 @@ impl OwnedSymbol {
             );
         }
 
-        OwnedSymbol {
-            name,
-            namespace: None,
-        }
+        OwnedSymbol::Global(GlobalOwnedSymbol { name })
     }
 
     /// Creates a new symbol in the given namespace. See [`Symbol::new_local`](Symbol::new_local) for more info.
@@ -86,27 +96,33 @@ impl OwnedSymbol {
             );
         }
 
-        OwnedSymbol {
+        OwnedSymbol::Local(LocalOwnedSymbol {
             name,
-            namespace: Some(Box::new(namespace)),
-        }
+            namespace: Box::new(namespace),
+        })
     }
 
     pub fn get_name(&self) -> &String {
-        &self.name
+        match self {
+            OwnedSymbol::Local(LocalOwnedSymbol { name, namespace: _ }) => &name,
+            OwnedSymbol::Global(GlobalOwnedSymbol { name }) => &name,
+        }
     }
+}
 
-    pub fn get_namespace(&self) -> Option<&OwnedSymbol> {
-        self.namespace.as_ref().map(|ns: &Box<_>| &**ns)
+impl LocalOwnedSymbol {
+    pub fn get_parent_namespace(&self) -> &OwnedSymbol {
+        &self.namespace
     }
 }
 
 impl<'a> From<&'a OwnedSymbol> for SymbolFormat<'a> {
     fn from(val: &'a OwnedSymbol) -> SymbolFormat<'a> {
-        if let Some(namespace) = &val.namespace {
-            SymbolFormat::Local(val.get_name(), Box::new((&**namespace).into()))
-        } else {
-            SymbolFormat::Global(val.get_name())
+        match val {
+            OwnedSymbol::Local(LocalOwnedSymbol { name, namespace }) => {
+                SymbolFormat::Local(&name, Box::new((&**namespace).into()))
+            }
+            OwnedSymbol::Global(GlobalOwnedSymbol { name }) => SymbolFormat::Global(&name),
         }
     }
 }
@@ -119,6 +135,6 @@ impl Display for OwnedSymbol {
 
 impl From<Symbol> for OwnedSymbol {
     fn from(val: Symbol) -> OwnedSymbol {
-        OwnedSymbol::new(val.get_name().to_string())
+        OwnedSymbol::new_global(val.get_name().to_string()) // TODO: Fix for locals
     }
 }
