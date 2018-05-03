@@ -23,6 +23,9 @@ extern crate serde;
 extern crate serde_derive;
 extern crate im;
 
+#[macro_use]
+mod macros;
+
 pub mod value;
 
 #[cfg(test)]
