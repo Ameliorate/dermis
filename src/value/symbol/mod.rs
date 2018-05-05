@@ -226,16 +226,6 @@ impl Symbol {
 impl PartialEq for GlobalSymbol {
     fn eq(&self, other: &GlobalSymbol) -> bool {
         self.name == other.name
-            && self.symbol_table
-                .upgrade()
-                .map(|s| {
-                    other
-                        .symbol_table
-                        .upgrade()
-                        .map(|o_s| Arc::ptr_eq(&s, &o_s))
-                        .unwrap_or(false)
-                })
-                .unwrap_or(false)
     }
 }
 
@@ -244,16 +234,6 @@ impl Eq for GlobalSymbol {}
 impl PartialEq for LocalSymbol {
     fn eq(&self, other: &LocalSymbol) -> bool {
         self.name == other.name && self.namespace == other.namespace
-            && self.symbol_table
-                .upgrade()
-                .map(|s| {
-                    other
-                        .symbol_table
-                        .upgrade()
-                        .map(|o_s| Arc::ptr_eq(&s, &o_s))
-                        .unwrap_or(false)
-                })
-                .unwrap_or(false)
     }
 }
 
@@ -263,92 +243,36 @@ impl Hash for LocalSymbol {
     fn hash<H: Hasher>(&self, state: &mut H) {
         self.name.hash(state);
         self.namespace.hash(state);
-
-        if let Some(table) = self.symbol_table.clone().upgrade() {
-            (&*table as *const RwLock<SymbolTable>).hash(state);
-        }
     }
 }
 
 impl Hash for GlobalSymbol {
     fn hash<H: Hasher>(&self, state: &mut H) {
         self.name.hash(state);
-
-        if let Some(table) = self.symbol_table.clone().upgrade() {
-            (&*table as *const RwLock<SymbolTable>).hash(state);
-        }
     }
 }
 
 impl PartialOrd for GlobalSymbol {
     fn partial_cmp(&self, other: &GlobalSymbol) -> Option<Ordering> {
-        (
-            &self.name,
-            self.symbol_table
-                .upgrade()
-                .map(|t| &*(t.read().unwrap()) as *const SymbolTable),
-        ).partial_cmp(&(
-            &other.name,
-            other
-                .symbol_table
-                .upgrade()
-                .map(|t| &*(t.read().unwrap()) as *const SymbolTable),
-        ))
+        (&self.name).partial_cmp(&other.name)
     }
 }
 
 impl Ord for GlobalSymbol {
     fn cmp(&self, other: &GlobalSymbol) -> Ordering {
-        (
-            &self.name,
-            self.symbol_table
-                .upgrade()
-                .map(|t| &*(t.read().unwrap()) as *const SymbolTable),
-        ).cmp(&(
-            &other.name,
-            other
-                .symbol_table
-                .upgrade()
-                .map(|t| &*(t.read().unwrap()) as *const SymbolTable),
-        ))
+        (&self.name).cmp(&other.name)
     }
 }
 
 impl PartialOrd for LocalSymbol {
     fn partial_cmp(&self, other: &LocalSymbol) -> Option<Ordering> {
-        (
-            &self.name,
-            &self.namespace,
-            self.symbol_table
-                .upgrade()
-                .map(|t| &*(t.read().unwrap()) as *const SymbolTable),
-        ).partial_cmp(&(
-            &other.name,
-            &other.namespace,
-            other
-                .symbol_table
-                .upgrade()
-                .map(|t| &*(t.read().unwrap()) as *const SymbolTable),
-        ))
+        (&self.name, &self.namespace).partial_cmp(&(&other.name, &other.namespace))
     }
 }
 
 impl Ord for LocalSymbol {
     fn cmp(&self, other: &LocalSymbol) -> Ordering {
-        (
-            &self.name,
-            &self.namespace,
-            self.symbol_table
-                .upgrade()
-                .map(|t| &*(t.read().unwrap()) as *const SymbolTable),
-        ).cmp(&(
-            &other.name,
-            &other.namespace,
-            other
-                .symbol_table
-                .upgrade()
-                .map(|t| &*(t.read().unwrap()) as *const SymbolTable),
-        ))
+        (&self.name, &self.namespace).cmp(&(&other.name, &other.namespace))
     }
 }
 
