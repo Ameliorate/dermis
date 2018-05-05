@@ -57,14 +57,14 @@ pub enum OwnedSymbol {
 /// A symbol scoped to a path.
 #[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord, Hash, Serialize, Deserialize)]
 pub struct LocalOwnedSymbol {
-    name: String,
-    namespace: Box<OwnedSymbol>,
+    pub(crate) name: String,
+    pub(crate) namespace: Box<OwnedSymbol>,
 }
 
 /// A symbol that is located in the global namespace.
 #[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord, Hash, Serialize, Deserialize)]
 pub struct GlobalOwnedSymbol {
-    name: String,
+    pub(crate) name: String,
 }
 
 impl OwnedSymbol {

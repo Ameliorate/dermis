@@ -24,6 +24,8 @@ use std::hash::{Hash, Hasher};
 use std::sync::{Arc, RwLock, Weak};
 
 use self::format::SymbolFormat;
+use value::OwnedSymbol;
+use value::owned::symbol::LocalOwnedSymbol;
 use {Interpreter, SymbolTable};
 
 pub(crate) mod format;
@@ -56,15 +58,15 @@ pub enum Symbol {
 
 #[derive(Debug, Clone)]
 pub struct LocalSymbol {
-    name: Arc<String>,
-    namespace: Box<Symbol>,
-    symbol_table: Weak<RwLock<SymbolTable>>,
+    pub(crate) name: Arc<String>,
+    pub(crate) namespace: Box<Symbol>,
+    pub(crate) symbol_table: Weak<RwLock<SymbolTable>>,
 }
 
 #[derive(Debug, Clone)]
 pub struct GlobalSymbol {
-    name: Arc<String>,
-    symbol_table: Weak<RwLock<SymbolTable>>,
+    pub(crate) name: Arc<String>,
+    pub(crate) symbol_table: Weak<RwLock<SymbolTable>>,
 }
 
 impl Symbol {
@@ -184,6 +186,11 @@ impl Symbol {
             namespace: Box::new(namespace),
             symbol_table: Arc::downgrade(&interpreter.symbol_table),
         })
+    }
+
+    /// Converts from an owned symbol.
+    pub fn from_owned(owned: &OwnedSymbol, interpreter: &mut Interpreter) -> Symbol {
+        (owned, interpreter).into()
     }
 
     /// Returns the name of the symbol.
@@ -362,8 +369,56 @@ impl<'a> From<&'a Symbol> for SymbolFormat<'a> {
     }
 }
 
+impl<'a, 'b> From<(&'a OwnedSymbol, &'b mut Interpreter)> for Symbol {
+    fn from((val, i): (&'a OwnedSymbol, &'b mut Interpreter)) -> Symbol {
+        use value::owned::symbol::OwnedSymbol::*;
+        match val {
+            Global(_) => Symbol::new_global(val.get_name().clone(), i),
+            Local(LocalOwnedSymbol {
+                ref name,
+                namespace,
+            }) => Symbol::new_local(name.clone(), (&**namespace, &mut *i).into(), i),
+        }
+    }
+}
+
 impl Display for Symbol {
     fn fmt(&self, f: &mut Formatter) -> fmt::Result {
         write!(f, "{}", SymbolFormat::from(self))
+    }
+}
+
+#[cfg(test)]
+mod test {
+    use super::*;
+
+    #[test]
+    fn symbol_from_owned_global() {
+        let owned = symbol_o!(foo);
+        let mut i = Interpreter::new();
+
+        let s: Symbol = (&owned, &mut i).into();
+
+        assert_eq!(s.to_string(), owned.to_string());
+    }
+
+    #[test]
+    fn symbol_from_owned_local_1() {
+        let owned = symbol_o!(foo;bar);
+        let mut i = Interpreter::new();
+
+        let s: Symbol = (&owned, &mut i).into();
+
+        assert_eq!(s.to_string(), owned.to_string());
+    }
+
+    #[test]
+    fn symbol_from_owned_local_2() {
+        let owned = symbol_o!(foo;bar;baz);
+        let mut i = Interpreter::new();
+
+        let s: Symbol = (&owned, &mut i).into();
+
+        assert_eq!(s.to_string(), owned.to_string());
     }
 }
