@@ -31,7 +31,7 @@ fn main() {
 
     let string = Value::String("Hello World!".to_string()); // Nothing notible about a string.
 
-    let symbol = Symbol::new("lst".to_string(), &mut i);
+    let symbol = Symbol::new_global("lst".to_string(), &mut i);
     let symbol_val = Value::Symbol(symbol.clone());
     // A symbol is like a string, but it can't be mutated and is more
     // like an identifier in other languages.
@@ -48,14 +48,14 @@ fn main() {
     // preformance-regards.
 
     obj.set_mut(
-        Symbol::new("num".to_string(), &mut i).into(),
+        Symbol::new_global("num".to_string(), &mut i).into(),
         number.clone(),
     );
     // Object::set_mut will automatically handle mutibility.
     //
     // Value has a bunch of From impl's that allow you to convert the value inner types easily.
 
-    let obj_num: Arc<Value> = obj.get(&Symbol::new("num".to_string(), &mut i).into());
+    let obj_num: Arc<Value> = obj.get(&Symbol::new_global("num".to_string(), &mut i).into());
 
     println!(
         "number: {}, string: {}, symbol: {}, symbol_val: {}, array: {}, obj: {}, obj.num: {}",

@@ -36,17 +36,17 @@ use value::symbol::format::SymbolFormat;
 /// use dermis::value::{OwnedSymbol, Symbol};
 /// use dermis::Interpreter;
 ///
-/// let owned_symbol = OwnedSymbol::new_global("'foo".to_string());
+/// let owned_symbol = OwnedSymbol::new_global("foo".to_string());
 ///
-/// assert_eq!(owned_symbol.get_name(), "'foo");
+/// assert_eq!(owned_symbol.get_name(), "foo");
 ///
 /// let another_symbol: OwnedSymbol = {
 ///     let mut interpreter = Interpreter::new();
-///     let symbol = Symbol::new("'bar".to_string(), &mut interpreter);
+///     let symbol = Symbol::new_global("bar".to_string(), &mut interpreter);
 ///     symbol.into()
 /// };
 ///
-/// assert_eq!(another_symbol.get_name(), "'bar");
+/// assert_eq!(another_symbol.get_name(), "bar");
 /// ```
 #[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord, Hash, Serialize, Deserialize)]
 pub enum OwnedSymbol {

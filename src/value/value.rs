@@ -73,9 +73,9 @@ pub enum Value {
     /// use dermis::value::{Value, Symbol};
     ///
     /// let mut interpreter = Interpreter::new();
-    /// let symbol = Value::Symbol(Symbol::new("'foo".to_string(), &mut interpreter));
+    /// let symbol = Value::Symbol(Symbol::new_global("foo".to_string(), &mut interpreter));
     ///
-    /// let another_symbol: Value = Symbol::new("'bar".to_string(), &mut interpreter).into();
+    /// let another_symbol: Value = Symbol::new_global("bar".to_string(), &mut interpreter).into();
     /// ```
     Symbol(Symbol),
 

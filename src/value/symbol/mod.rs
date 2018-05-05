@@ -44,23 +44,33 @@ pub(crate) mod format;
 ///
 /// let mut interpreter = Interpreter::new();
 ///
-/// let symbol = Symbol::new("a".to_string(), &mut interpreter);
+/// let symbol = Symbol::new_global("a".to_string(), &mut interpreter);
 ///
 /// assert_eq!(symbol.get_name(), "a");
 /// ```
+#[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
+pub enum Symbol {
+    Local(LocalSymbol),
+    Global(GlobalSymbol),
+}
+
 #[derive(Debug, Clone)]
-pub struct Symbol {
+pub struct LocalSymbol {
     name: Arc<String>,
-    /// The namespace of the symbol. If this is None, then the symbol is in the global namespace
-    /// and was created with new instead of new_local.
-    pub namespace: Option<Box<Symbol>>,
+    namespace: Box<Symbol>,
+    symbol_table: Weak<RwLock<SymbolTable>>,
+}
+
+#[derive(Debug, Clone)]
+pub struct GlobalSymbol {
+    name: Arc<String>,
     symbol_table: Weak<RwLock<SymbolTable>>,
 }
 
 impl Symbol {
     /// Returns a new symbol in the global namespace.
     ///
-    /// Repeated callings of `Symbol::new` with the same name and interpreter will return `Symbol`s
+    /// Repeated callings of `Symbol::new_global` with the same name and interpreter will return `Symbol`s
     /// equal to each other.
     ///
     /// This function leaks memory equal to the size of Arc<String>.
@@ -73,8 +83,8 @@ impl Symbol {
     ///
     /// let mut interpreter = Interpreter::new();
     ///
-    /// let symbol_1 = Symbol::new("a".to_string(), &mut interpreter);
-    /// let symbol_2 = Symbol::new("a".to_string(), &mut interpreter);
+    /// let symbol_1 = Symbol::new_global("a".to_string(), &mut interpreter);
+    /// let symbol_2 = Symbol::new_global("a".to_string(), &mut interpreter);
     ///
     ///
     /// assert_eq!(symbol_1.get_name(), "a");
@@ -84,7 +94,7 @@ impl Symbol {
     /// # Panics
     /// `name` contained a space. This limitation is in place to ease the creation of an input
     /// method for an IDE.
-    pub fn new(name: String, interpreter: &mut Interpreter) -> Symbol {
+    pub fn new_global(name: String, interpreter: &mut Interpreter) -> Symbol {
         if name.contains(" ") {
             panic!(
                 "Symbols can not contain spaces but symbol {} contained a space",
@@ -111,17 +121,16 @@ impl Symbol {
                 .push(name_a.clone().unwrap());
         }
 
-        Symbol {
+        Symbol::Global(GlobalSymbol {
             name: name_a.unwrap(),
-            namespace: None,
             symbol_table: Arc::downgrade(&interpreter.symbol_table),
-        }
+        })
     }
 
     /// Creates a symbol local to it's namespace. Two symbols that share a name but not a namespace
     /// are not equal.
     ///
-    /// See [`Symbol::new`](Symbol::new) for more info.
+    /// See [`Symbol::new_global`](Symbol::new_global) for more info.
     ///
     /// # Example
     /// ```
@@ -130,10 +139,10 @@ impl Symbol {
     ///
     /// let mut interpreter = Interpreter::new();
     ///
-    /// let foo_namespace = Symbol::new("foo_namespace".to_string(), &mut interpreter);
+    /// let foo_namespace = Symbol::new_global("foo_namespace".to_string(), &mut interpreter);
     /// let local_a = Symbol::new_local("a".to_string(), foo_namespace.clone(), &mut interpreter);
     ///
-    /// let bar_namespace = Symbol::new("bar_namespace".to_string(), &mut interpreter);
+    /// let bar_namespace = Symbol::new_global("bar_namespace".to_string(), &mut interpreter);
     /// let local_b = Symbol::new_local("a".to_string(), bar_namespace.clone(), &mut interpreter);
     ///
     /// assert_eq!(local_a.get_name(), local_b.get_name());
@@ -170,11 +179,11 @@ impl Symbol {
                     .push(name_a.clone().unwrap());
         }
 
-        Symbol {
+        Symbol::Local(LocalSymbol {
             name: name_a.unwrap(),
-            namespace: Some(Box::new(namespace)),
+            namespace: Box::new(namespace),
             symbol_table: Arc::downgrade(&interpreter.symbol_table),
-        }
+        })
     }
 
     /// Returns the name of the symbol.
@@ -186,19 +195,47 @@ impl Symbol {
     ///
     /// let mut interpreter = Interpreter::new();
     ///
-    /// let symbol = Symbol::new("symbol".to_string(), &mut interpreter);
-    /// let symbol_b = Symbol::new("another_symbol".to_string(), &mut interpreter);
+    /// let symbol = Symbol::new_global("symbol".to_string(), &mut interpreter);
+    /// let symbol_b = Symbol::new_global("another_symbol".to_string(), &mut interpreter);
     ///
     /// assert_eq!(symbol.get_name(), "symbol");
     /// assert_eq!(symbol_b.get_name(), "another_symbol"); // Note how one is added.
     /// ```
     pub fn get_name(&self) -> &String {
-        &*self.name
+        match self {
+            Symbol::Global(GlobalSymbol {
+                name,
+                symbol_table: _,
+            }) => &name,
+            Symbol::Local(LocalSymbol {
+                name,
+                namespace: _,
+                symbol_table: _,
+            }) => &name,
+        }
     }
 }
 
-impl PartialEq for Symbol {
-    fn eq(&self, other: &Symbol) -> bool {
+impl PartialEq for GlobalSymbol {
+    fn eq(&self, other: &GlobalSymbol) -> bool {
+        self.name == other.name
+            && self.symbol_table
+                .upgrade()
+                .map(|s| {
+                    other
+                        .symbol_table
+                        .upgrade()
+                        .map(|o_s| Arc::ptr_eq(&s, &o_s))
+                        .unwrap_or(false)
+                })
+                .unwrap_or(false)
+    }
+}
+
+impl Eq for GlobalSymbol {}
+
+impl PartialEq for LocalSymbol {
+    fn eq(&self, other: &LocalSymbol) -> bool {
         self.name == other.name && self.namespace == other.namespace
             && self.symbol_table
                 .upgrade()
@@ -213,13 +250,12 @@ impl PartialEq for Symbol {
     }
 }
 
-impl Eq for Symbol {}
+impl Eq for LocalSymbol {}
 
-impl Hash for Symbol {
+impl Hash for LocalSymbol {
     fn hash<H: Hasher>(&self, state: &mut H) {
         self.name.hash(state);
         self.namespace.hash(state);
-        self.symbol_table.upgrade().is_some().hash(state);
 
         if let Some(table) = self.symbol_table.clone().upgrade() {
             (&*table as *const RwLock<SymbolTable>).hash(state);
@@ -227,8 +263,52 @@ impl Hash for Symbol {
     }
 }
 
-impl PartialOrd for Symbol {
-    fn partial_cmp(&self, other: &Symbol) -> Option<Ordering> {
+impl Hash for GlobalSymbol {
+    fn hash<H: Hasher>(&self, state: &mut H) {
+        self.name.hash(state);
+
+        if let Some(table) = self.symbol_table.clone().upgrade() {
+            (&*table as *const RwLock<SymbolTable>).hash(state);
+        }
+    }
+}
+
+impl PartialOrd for GlobalSymbol {
+    fn partial_cmp(&self, other: &GlobalSymbol) -> Option<Ordering> {
+        (
+            &self.name,
+            self.symbol_table
+                .upgrade()
+                .map(|t| &*(t.read().unwrap()) as *const SymbolTable),
+        ).partial_cmp(&(
+            &other.name,
+            other
+                .symbol_table
+                .upgrade()
+                .map(|t| &*(t.read().unwrap()) as *const SymbolTable),
+        ))
+    }
+}
+
+impl Ord for GlobalSymbol {
+    fn cmp(&self, other: &GlobalSymbol) -> Ordering {
+        (
+            &self.name,
+            self.symbol_table
+                .upgrade()
+                .map(|t| &*(t.read().unwrap()) as *const SymbolTable),
+        ).cmp(&(
+            &other.name,
+            other
+                .symbol_table
+                .upgrade()
+                .map(|t| &*(t.read().unwrap()) as *const SymbolTable),
+        ))
+    }
+}
+
+impl PartialOrd for LocalSymbol {
+    fn partial_cmp(&self, other: &LocalSymbol) -> Option<Ordering> {
         (
             &self.name,
             &self.namespace,
@@ -246,8 +326,8 @@ impl PartialOrd for Symbol {
     }
 }
 
-impl Ord for Symbol {
-    fn cmp(&self, other: &Symbol) -> Ordering {
+impl Ord for LocalSymbol {
+    fn cmp(&self, other: &LocalSymbol) -> Ordering {
         (
             &self.name,
             &self.namespace,
@@ -267,10 +347,17 @@ impl Ord for Symbol {
 
 impl<'a> From<&'a Symbol> for SymbolFormat<'a> {
     fn from(val: &'a Symbol) -> SymbolFormat<'a> {
-        if let Some(namespace) = &val.namespace {
-            SymbolFormat::Local(val.get_name(), Box::new((&**namespace).into()))
-        } else {
-            SymbolFormat::Global(val.get_name())
+        use Symbol::*;
+        match val {
+            Global(GlobalSymbol {
+                name,
+                symbol_table: _,
+            }) => SymbolFormat::Global(&name),
+            Local(LocalSymbol {
+                name,
+                namespace,
+                symbol_table: _,
+            }) => SymbolFormat::Local(&name, Box::new((&**namespace).into())),
         }
     }
 }
