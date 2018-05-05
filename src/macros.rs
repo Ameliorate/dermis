@@ -19,7 +19,7 @@
 //! Contains several utility macros for initializing values, etc.
 
 /// Initializes a local or global owned symbol.
-/// 
+///
 /// See [`OwnedSymbol`](::value::OwnedSymbol).
 ///
 /// For a global symbol, you should call this macro with the name of the symbol, without any
@@ -34,7 +34,7 @@
 /// #[macro_use]
 /// extern crate dermis;
 ///
-/// # fn main () {
+/// # fn main() {
 /// let global = symbol_o!(global);
 /// let local = symbol_o!(foo;bar;baz);
 ///
@@ -56,8 +56,52 @@ macro_rules! symbol_o {
     }};
 }
 
+/// Initalizes a local or global symbol.
+///
+/// See [`Symbol`](::value::Symbol).
+///
+/// This macro has a syntax like `symbol!([NAME], &mut [INTERPRETER])` where `[NAME]` and
+/// `[INTERPRETER]` are replaced with the name of the symbol and the interpreter. The name should be
+/// a valid rust identifier (although beware Symbol values can be invalid rust identifiers).
+///
+/// The name can also be a series of identifiers seperated by semicolons, in order to denote a
+/// local symbol. Semicolons are used because a double colon (as is used in the rest of the
+/// interpreter) would overcomplicate the macro definition.
+///
+/// # Example
+/// ```
+/// #[macro_use]
+/// extern crate dermis;
+/// use dermis::Interpreter;
+///
+/// # fn main() {
+/// let mut interpreter = Interpreter::new();
+///
+/// let global = symbol!(global, &mut interpreter);
+/// let local = symbol!(foo;bar;baz, &mut interpreter);
+///
+/// assert_eq!(&global.to_string(), "'global");
+/// assert_eq!(&local.to_string(), "'foo::bar::baz");
+/// # }
+/// ```
+#[macro_export]
+macro_rules! symbol {
+    ($name:ident, $interp:expr) => {{
+        $crate::value::Symbol::new_global(stringify!($name).to_string(), $interp)
+    }};
+    ($head:ident ; $( $tail:ident );+ , $interp:expr) => {{
+        let mut sym = $crate::value::Symbol::new_global(stringify!($head).to_string(), $interp);
+        $(
+            sym = $crate::value::Symbol::new_local(stringify!($tail).to_string(), sym, $interp);
+        )*
+        sym
+    }};
+}
+
 #[cfg(test)]
 mod test {
+    use Interpreter;
+
     #[test]
     fn symbol_o_macro_global() {
         let sym = symbol_o!(test);
@@ -75,6 +119,30 @@ mod test {
     #[test]
     fn symbol_o_macro_local_2() {
         let sym = symbol_o!(test;a;b);
+
+        assert_eq!(&sym.to_string(), "'test::a::b");
+    }
+
+    #[test]
+    fn symbol_macro_global() {
+        let mut i = Interpreter::new();
+        let sym = symbol!(test, &mut i);
+
+        assert_eq!(sym.get_name(), "test");
+    }
+
+    #[test]
+    fn symbol_macro_local_1() {
+        let mut i = Interpreter::new();
+        let sym = symbol!(test;a, &mut i);
+
+        assert_eq!(&sym.to_string(), "'test::a");
+    }
+
+    #[test]
+    fn symbol_macro_local_2() {
+        let mut i = Interpreter::new();
+        let sym = symbol!(test;a;b, &mut i);
 
         assert_eq!(&sym.to_string(), "'test::a::b");
     }
