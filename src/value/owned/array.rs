@@ -196,11 +196,12 @@ mod test {
 
     #[test]
     fn owned_array_from_array() {
-        use value::{Array, Number};
+        use decorum::N64;
+        use value::Array;
 
         let array: Array = vec![12.0.into()].into();
         let owned: OwnedArray = array.into();
-        assert_eq!(*owned.0.get_unwrapped(0), Number::from(12.0).into());
+        assert_eq!(*owned.0.get_unwrapped(0), N64::from(12.0).into());
     }
 
     #[test]

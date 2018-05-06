@@ -22,10 +22,12 @@ use std::convert::From;
 use std::fmt;
 use std::fmt::{Display, Formatter};
 
+use decorum::N64;
+
 use value::owned::array::OwnedArray;
 use value::owned::object::OwnedObject;
 use value::owned::symbol::OwnedSymbol;
-use value::{Array, Number, Object, Symbol, Value};
+use value::{Array, Object, Symbol, Value};
 
 /// Owned version of [`dermis::value::Value`](::value::Value)
 ///
@@ -34,7 +36,7 @@ use value::{Array, Number, Object, Symbol, Value};
 /// continue to function as expected.
 #[derive(Ord, PartialOrd, PartialEq, Eq, Hash, Debug, Clone, From, Serialize, Deserialize)]
 pub enum OwnedValue {
-    Number(Number),
+    Number(N64),
     String(String),
     Symbol(OwnedSymbol),
     Array(OwnedArray),

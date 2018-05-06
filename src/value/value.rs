@@ -19,7 +19,9 @@
 use std::fmt;
 use std::fmt::{Display, Formatter};
 
-use value::{Array, Number, Object, Symbol};
+use decorum::N64;
+
+use value::{Array, Object, Symbol};
 
 /// Denotes any basic value possible in Dermis.
 ///
@@ -33,10 +35,7 @@ pub enum Value {
     /// Integer types are not needed, as a double is equal to a 52 byte signed integer.
     /// In addition, the interpreter has (will have) types for simulating integer types.
     ///
-    /// It should be noted that the decimal component will be discarded when doing comparisons
-    /// between number types.
-    ///
-    /// See [`dermis::value::Number`](Number) for more info.
+    /// See [`decorum::N64`](N64) for more info.
     ///
     /// # Example
     /// ```
@@ -46,7 +45,7 @@ pub enum Value {
     ///
     /// let another_number: Value = 3.14.into();
     /// ```
-    Number(Number),
+    Number(N64),
 
     /// Basic string type.
     ///

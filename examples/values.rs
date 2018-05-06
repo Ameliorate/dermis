@@ -61,8 +61,4 @@ fn main() {
         "number: {}, string: {}, symbol: {}, symbol_val: {}, array: {}, obj: {}, obj.num: {}",
         number, string, symbol, symbol_val, array, obj, obj_num
     );
-
-    assert_eq!(Value::Number(12.65.into()), Value::Number(12.9.into()));
-    // It should be noted that due to implementation details, numbers are trunctuated when
-    // compared.
 }

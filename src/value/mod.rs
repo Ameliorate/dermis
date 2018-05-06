@@ -25,7 +25,6 @@
 //! not.
 
 pub mod array;
-pub mod number;
 pub mod object;
 pub mod symbol;
 pub mod value;
@@ -33,7 +32,6 @@ pub mod value;
 pub mod owned;
 
 pub use self::array::Array;
-pub use self::number::Number;
 pub use self::object::{get_null, Object};
 pub use self::symbol::Symbol;
 pub use self::value::Value;
