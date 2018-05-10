@@ -45,6 +45,7 @@ pub use decorum::N64;
 
 use std::cmp::Ordering;
 use std::fmt;
+use std::hash::{Hash, Hasher};
 
 use serde::de::{self, Deserialize, Deserializer, MapAccess, SeqAccess, Visitor};
 use serde::ser::SerializeStruct;
@@ -89,7 +90,7 @@ pub enum AValue {
 /// # Example
 /// ```
 /// use dermis::value::{Number, AValue, Value, OwnedValue};
-/// 
+///
 /// let num: Number = 12.0.into();
 /// let val: Value = num.clone().into();
 /// let owned: OwnedValue = num.clone().into();
@@ -216,6 +217,19 @@ impl Ord for AValue {
             A(val) => OwnedValue::from(val.clone()),
             Owned(val) => val.clone(),
         })
+    }
+}
+
+impl Hash for AValue {
+    fn hash<H>(&self, state: &mut H)
+    where
+        H: Hasher,
+    {
+        use self::AValue::*;
+        match self {
+            A(val) => OwnedValue::from(val.clone()).hash(state),
+            Owned(val) => val.hash(state),
+        }
     }
 }
 
