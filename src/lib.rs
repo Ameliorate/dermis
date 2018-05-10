@@ -23,6 +23,7 @@ extern crate serde;
 extern crate serde_derive;
 extern crate im;
 extern crate decorum;
+extern crate serde_json;
 
 #[macro_use]
 mod macros;
