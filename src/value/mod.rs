@@ -47,10 +47,10 @@ use std::cmp::Ordering;
 use std::fmt;
 use std::hash::{Hash, Hasher};
 
+use Interpreter;
 use serde::de::{self, Deserialize, Deserializer, MapAccess, SeqAccess, Visitor};
 use serde::ser::SerializeStruct;
 use serde::{Serialize, Serializer};
-use Interpreter;
 
 pub type Number = N64;
 
@@ -143,10 +143,12 @@ impl AValue {
 
     /// Convert this value to a normal [`Value`](Value). If this is the `Owned` variant, the value
     /// will be converted to a [`Value`](Value). If it is the correct variant, this is a no-op.
-    ///
-    /// This function is not yet implemented. See issue #4 for more info.
-    pub fn into_unowned(self, _: &mut Interpreter) -> Value {
-        unimplemented!() // TODO: issue #4
+    pub fn into_unowned(self, i: &mut Interpreter) -> Value {
+        use self::AValue::*;
+        match self {
+            Owned(val) => Value::from_owned(&val, i),
+            A(val) => val,
+        }
     }
 }
 
