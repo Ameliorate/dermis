@@ -23,7 +23,8 @@ use std::fmt;
 use std::fmt::{Display, Formatter};
 use std::sync::Arc;
 
-use value::{get_null, Value};
+use Interpreter;
+use value::{get_null, OwnedArray, OwnedValue, Value};
 
 /// Any number of [`Value`](Value)s.
 ///
@@ -55,6 +56,17 @@ impl From<Array> for Vec<Value> {
             .into_iter()
             .map(|a: Arc<_>| Arc::try_unwrap(a).unwrap_or_else(|e| (&*e).clone()))
             .collect()
+    }
+}
+
+impl<'a, 'b> From<(&'a OwnedArray, &'b mut Interpreter)> for Array {
+    fn from((val, i): (&'a OwnedArray, &'b mut Interpreter)) -> Array {
+        Array(
+            val.0
+                .iter()
+                .map(|val: Arc<OwnedValue>| Value::from_owned(&val, &mut *i))
+                .collect(),
+        )
     }
 }
 
@@ -103,6 +115,10 @@ impl Array {
     /// See [`im::Vector::get`](im::Vector::get).
     pub fn get_opt(&self, index: usize) -> Option<Arc<Value>> {
         self.0.get(index)
+    }
+
+    pub fn from_owned(val: &OwnedArray, interpreter: &mut Interpreter) -> Array {
+        (val, interpreter).into()
     }
 }
 
@@ -287,5 +303,18 @@ mod test {
         let arr: Array = vec![Value::from(1.0), Value::from(2.0)].into();
 
         assert_eq!(format!("{}", arr), "[1, 2]");
+    }
+
+    #[test]
+    fn from_owned() {
+        let owned: OwnedArray = vec![12.0.into(), 13.5.into(), 3.14.into()].into();
+
+        let mut i = Interpreter::new();
+
+        let a = Array::from_owned(&owned, &mut i);
+
+        assert_eq!(*a.get_unwrapped(0), 12.0.into());
+        assert_eq!(*a.get_unwrapped(1), 13.5.into());
+        assert_eq!(*a.get_unwrapped(2), 3.14.into());
     }
 }
