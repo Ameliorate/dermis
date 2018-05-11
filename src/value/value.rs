@@ -151,7 +151,7 @@ impl<'a, 'b> From<(&'a OwnedValue, &'b mut Interpreter)> for Value {
         match val {
             OwnedValue::Number(ref num) => Value::Number(num.clone()),
             OwnedValue::String(ref srn) => Value::String(srn.clone()),
-            OwnedValue::Symbol(ref sym) => Value::Symbol((sym, i).into()),
+            OwnedValue::Symbol(ref sym) => Value::Symbol(Symbol::from_owned(sym, i)),
             OwnedValue::Object(ref obj) => Value::Object(Object::from_owned(obj, i)),
             OwnedValue::Array(ref arra) => Value::Array(Array::from_owned(arra, i)),
         }
