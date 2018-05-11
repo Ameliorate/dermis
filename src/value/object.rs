@@ -23,7 +23,8 @@ use std::fmt;
 use std::fmt::{Display, Formatter};
 use std::sync::Arc;
 
-use value::Value;
+use Interpreter;
+use value::{OwnedObject, OwnedValue, Value};
 
 /// Returns an empty object.
 ///
@@ -94,6 +95,22 @@ impl From<Object> for BTreeMap<Value, Value> {
     }
 }
 
+impl<'a, 'b> From<(&'a OwnedObject, &'b mut Interpreter)> for Object {
+    fn from((val, i): (&'a OwnedObject, &'b mut Interpreter)) -> Object {
+        Object(
+            val.0
+                .iter()
+                .map(|(k, v): (Arc<OwnedValue>, Arc<OwnedValue>)| {
+                    (
+                        Value::from_owned(&*k, &mut *i),
+                        Value::from_owned(&*v, &mut *i),
+                    )
+                })
+                .collect(),
+        )
+    }
+}
+
 impl Display for Object {
     fn fmt(&self, f: &mut Formatter) -> fmt::Result {
         write!(f, "{{")?;
@@ -139,6 +156,10 @@ impl Object {
 
     pub fn empty() -> Self {
         Object::default()
+    }
+
+    pub fn from_owned(val: &OwnedObject, interpreter: &mut Interpreter) -> Object {
+        (val, interpreter).into()
     }
 }
 
@@ -419,5 +440,21 @@ mod test {
             "fmted: {}",
             fmted
         );
+    }
+
+    #[test]
+    fn from_owned() {
+        let mut owned = OwnedObject::empty();
+        owned.set_mut(symbol_o!(foo).into(), "f".into());
+        owned.set_mut(symbol_o!(bar).into(), "b".into());
+        owned.set_mut(symbol_o!(baz).into(), "a".into());
+
+        let mut i = Interpreter::new();
+
+        let a: Object = Object::from_owned(&owned, &mut i);
+
+        assert_eq!(*a.get(&(symbol!(foo, &mut i)).into()), "f".into());
+        assert_eq!(*a.get(&(symbol!(bar, &mut i)).into()), "b".into());
+        assert_eq!(*a.get(&(symbol!(baz, &mut i)).into()), "a".into());
     }
 }
