@@ -150,6 +150,20 @@ impl AValue {
             A(val) => val,
         }
     }
+
+    /// Convert the representation of this into AValue::Owned.
+    ///
+    /// See also [`AValue::into_owned`](AValue::into_owned).
+    pub fn self_into_owned(self) -> AValue {
+        AValue::Owned(self.into_owned())
+    }
+
+    /// Convert the representation of this into AValue::A.
+    ///
+    /// See also [`AValue::into_owned`](AValue::into_unowned).
+    pub fn self_into_unowned(self, i: &mut Interpreter) -> AValue {
+        AValue::A(self.into_unowned(i))
+    }
 }
 
 impl<'val> AValue {
