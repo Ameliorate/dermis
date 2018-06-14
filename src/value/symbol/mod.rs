@@ -24,8 +24,8 @@ use std::hash::{Hash, Hasher};
 use std::sync::{Arc, RwLock, Weak};
 
 use self::format::SymbolFormat;
-use value::OwnedSymbol;
 use value::owned::symbol::LocalOwnedSymbol;
+use value::OwnedSymbol;
 use {Interpreter, SymbolTable};
 
 pub(crate) mod format;

@@ -22,8 +22,8 @@ use std::convert::From;
 use std::fmt;
 use std::fmt::{Display, Formatter};
 
-use value::Symbol;
 use value::symbol::format::SymbolFormat;
+use value::Symbol;
 
 /// Provides an owned version of [`dermis::value::symbol::Symbol`](::value::Symbol).
 ///

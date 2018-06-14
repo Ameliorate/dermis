@@ -47,10 +47,10 @@ use std::cmp::Ordering;
 use std::fmt;
 use std::hash::{Hash, Hasher};
 
-use Interpreter;
 use serde::de::{self, Deserialize, Deserializer, MapAccess, SeqAccess, Visitor};
 use serde::ser::SerializeStruct;
 use serde::{Serialize, Serializer};
+use Interpreter;
 
 pub type Number = N64;
 
@@ -288,7 +288,8 @@ impl<'de> Deserialize<'de> for AValue {
             where
                 V: SeqAccess<'de>,
             {
-                let val = seq.next_element()?
+                let val = seq
+                    .next_element()?
                     .ok_or_else(|| de::Error::invalid_length(0, &self))?;
                 Ok(AValue::Owned(val))
             }

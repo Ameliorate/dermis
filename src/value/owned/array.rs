@@ -18,12 +18,12 @@
 
 //! Owned version of [`dermis::value::Array`](::value::Array)
 
-use im::Vector;
 use im::vector::Iter;
+use im::Vector;
 use std::cmp::Ordering;
 use std::sync::Arc;
-use value::Array;
 use value::owned::value::OwnedValue;
+use value::Array;
 
 use std::convert::From;
 

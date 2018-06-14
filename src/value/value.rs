@@ -21,8 +21,8 @@ use std::fmt::{Display, Formatter};
 
 use decorum::N64;
 
-use Interpreter;
 use value::{Array, Object, OwnedValue, Symbol};
+use Interpreter;
 
 /// Denotes any basic value possible in Dermis.
 ///

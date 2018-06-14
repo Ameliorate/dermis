@@ -21,8 +21,8 @@ extern crate derive_more;
 extern crate serde;
 #[macro_use]
 extern crate serde_derive;
-extern crate im;
 extern crate decorum;
+extern crate im;
 extern crate serde_json;
 
 #[macro_use]

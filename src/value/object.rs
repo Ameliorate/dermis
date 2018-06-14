@@ -16,15 +16,15 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-use im::HashMap;
 use im::hashmap::{Keys, Values};
+use im::HashMap;
 use std::collections::BTreeMap;
 use std::fmt;
 use std::fmt::{Display, Formatter};
 use std::sync::Arc;
 
-use Interpreter;
 use value::{OwnedObject, OwnedValue, Value};
+use Interpreter;
 
 /// Returns an empty object.
 ///

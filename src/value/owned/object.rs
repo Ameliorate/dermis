@@ -18,14 +18,14 @@
 
 //! Owned version of [`dermis::value::Object`](::value::Object)
 
-use im::HashMap;
 use im::hashmap::{Keys, Values};
+use im::HashMap;
 use std::collections::BTreeMap;
 use std::convert::From;
 use std::sync::Arc;
 
-use value::Object;
 use value::owned::value::OwnedValue;
+use value::Object;
 
 /// See [`get_null`](value::object::get_null).
 pub fn get_null_owned() -> Arc<OwnedValue> {

@@ -16,15 +16,15 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-use im::Vector;
 use im::vector::Iter;
+use im::Vector;
 use std::cmp::Ordering;
 use std::fmt;
 use std::fmt::{Display, Formatter};
 use std::sync::Arc;
 
-use Interpreter;
 use value::{get_null, OwnedArray, OwnedValue, Value};
+use Interpreter;
 
 /// Any number of [`Value`](Value)s.
 ///

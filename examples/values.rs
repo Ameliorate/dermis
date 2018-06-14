@@ -18,8 +18,8 @@
 
 extern crate dermis;
 
-use dermis::Interpreter;
 use dermis::value::{Object, Symbol, Value};
+use dermis::Interpreter;
 
 use std::sync::Arc;
 
