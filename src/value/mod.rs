@@ -46,6 +46,7 @@ pub use decorum::N64;
 use std::cmp::Ordering;
 use std::fmt;
 use std::hash::{Hash, Hasher};
+use std::sync::Arc;
 
 use serde::de::{self, Deserialize, Deserializer, MapAccess, SeqAccess, Visitor};
 use serde::ser::SerializeStruct;
@@ -78,8 +79,20 @@ pub type Number = N64;
 /// ```
 #[derive(Debug, Clone, From)]
 pub enum AValue {
-    Owned(OwnedValue),
-    A(Value),
+    Owned(Arc<OwnedValue>),
+    A(Arc<Value>),
+}
+
+impl From<OwnedValue> for AValue {
+    fn from(val: OwnedValue) -> AValue {
+        AValue::Owned(Arc::new(val))
+    }
+}
+
+impl From<Value> for AValue {
+    fn from(val: Value) -> AValue {
+        AValue::A(Arc::new(val))
+    }
 }
 
 /// Used for comparing [`AValue`](AValue)'s by type rather by value.
@@ -133,20 +146,20 @@ impl AValue {
     ///
     /// assert_eq!(owned, OwnedValue::from(num));
     /// ```
-    pub fn into_owned(self) -> OwnedValue {
+    pub fn into_owned(self) -> Arc<OwnedValue> {
         use self::AValue::*;
         match self {
             Owned(val) => val,
-            A(val) => val.into(),
+            A(val) => Arc::new((&*val).clone().into()),
         }
     }
 
     /// Convert this value to a normal [`Value`](Value). If this is the `Owned` variant, the value
     /// will be converted to a [`Value`](Value). If it is the correct variant, this is a no-op.
-    pub fn into_unowned(self, i: &mut Interpreter) -> Value {
+    pub fn into_unowned(self, i: &mut Interpreter) -> Arc<Value> {
         use self::AValue::*;
         match self {
-            Owned(val) => Value::from_owned(&val, i),
+            Owned(val) => Arc::new(Value::from_owned(&val, i)),
             A(val) => val,
         }
     }
@@ -199,11 +212,11 @@ impl PartialEq for AValue {
     fn eq(&self, other: &AValue) -> bool {
         use self::AValue::*;
         match self {
-            A(val) => OwnedValue::from(val.clone()),
-            Owned(val) => val.clone(),
+            A(val) => OwnedValue::from((&**val).clone()),
+            Owned(val) => (&**val).clone(),
         }.eq(&match other {
-            A(val) => OwnedValue::from(val.clone()),
-            Owned(val) => val.clone(),
+            A(val) => OwnedValue::from((&**val).clone()),
+            Owned(val) => (&**val).clone(),
         })
     }
 }
@@ -214,11 +227,11 @@ impl PartialOrd for AValue {
     fn partial_cmp(&self, other: &AValue) -> Option<Ordering> {
         use self::AValue::*;
         match self {
-            A(val) => OwnedValue::from(val.clone()),
-            Owned(val) => val.clone(),
+            A(val) => OwnedValue::from((&**val).clone()),
+            Owned(val) => (&**val).clone(),
         }.partial_cmp(&match other {
-            A(val) => OwnedValue::from(val.clone()),
-            Owned(val) => val.clone(),
+            A(val) => OwnedValue::from((&**val).clone()),
+            Owned(val) => (&**val).clone(),
         })
     }
 }
@@ -227,11 +240,11 @@ impl Ord for AValue {
     fn cmp(&self, other: &AValue) -> Ordering {
         use self::AValue::*;
         match self {
-            A(val) => OwnedValue::from(val.clone()),
-            Owned(val) => val.clone(),
+            A(val) => OwnedValue::from((&**val).clone()),
+            Owned(val) => (&**val).clone(),
         }.cmp(&match other {
-            A(val) => OwnedValue::from(val.clone()),
-            Owned(val) => val.clone(),
+            A(val) => OwnedValue::from((&**val).clone()),
+            Owned(val) => (&**val).clone(),
         })
     }
 }
@@ -243,7 +256,7 @@ impl Hash for AValue {
     {
         use self::AValue::*;
         match self {
-            A(val) => OwnedValue::from(val.clone()).hash(state),
+            A(val) => OwnedValue::from((&**val).clone()).hash(state),
             Owned(val) => val.hash(state),
         }
     }
@@ -256,8 +269,8 @@ impl Serialize for AValue {
     {
         use self::AValue::*;
         let val = match self {
-            A(v) => OwnedValue::from(v.clone()),
-            Owned(v) => v.clone(),
+            A(v) => OwnedValue::from((&**v).clone()),
+            Owned(v) => (&**v).clone(),
         };
         let mut state = serializer.serialize_struct("AValue", 1)?;
         state.serialize_field("val", &val)?;
@@ -291,7 +304,7 @@ impl<'de> Deserialize<'de> for AValue {
                 let val = seq
                     .next_element()?
                     .ok_or_else(|| de::Error::invalid_length(0, &self))?;
-                Ok(AValue::Owned(val))
+                Ok(AValue::Owned(Arc::new(val)))
             }
 
             fn visit_map<V>(self, mut map: V) -> Result<AValue, V::Error>
@@ -312,7 +325,7 @@ impl<'de> Deserialize<'de> for AValue {
                 }
 
                 let val = val.ok_or_else(|| de::Error::missing_field("val"))?;
-                Ok(AValue::Owned(val))
+                Ok(AValue::Owned(Arc::new(val)))
             }
         }
 
