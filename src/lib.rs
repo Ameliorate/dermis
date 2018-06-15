@@ -16,6 +16,8 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
+#![feature(try_from)]
+
 #[macro_use]
 extern crate derive_more;
 extern crate serde;
@@ -29,6 +31,7 @@ extern crate serde_json;
 mod macros;
 
 pub mod value;
+pub mod ast;
 
 #[cfg(test)]
 mod test;
